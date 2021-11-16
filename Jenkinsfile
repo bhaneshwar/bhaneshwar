@@ -1,6 +1,13 @@
 pipeline {
    agent any
    stages {
+        stage('QA Code Compile') {
+           steps {
+               sh """
+               javac Helloworld.java
+               """
+           }
+       }
        stage('Build QA Code') {
            steps {
                sh """
