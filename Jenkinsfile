@@ -1,32 +1,28 @@
 pipeline {
-    agent any
-    stages {
-        stage('Master Branch Deploy Code') {
-            when {
-                branch 'main'
-            }
-            steps {
-                sh """
-                echo "Building Artifact from Master branch"
-                """
-
-                sh """
-                echo "Deploying Code from Master branch"
-                """
-            }
-        }
-        stage('Develop Branch Deploy Code') {
-            when {
-                branch 'dev'
-            }
-            steps {
-                sh """
-                echo "Building Artifact from Develop branch"
-                """
-                sh """
-                echo "Deploying Code from Develop branch"
-                """
+   agent any
+   stages {
+       stage('Build QA Code') {
+           steps {
+               sh """
+               echo "Building Artifact from Develop Branch"
+               """
            }
-        }
-    }
+       }
+       
+       stage('QA Code Test') {
+           steps {
+               sh """
+               java Helloworld"
+               """
+           }
+       }
+
+      stage('Deploy QA Code') {
+          steps {
+               sh """
+               echo "Deploying Code from Develop Branch"
+               """
+          }
+      }
+   }
 }
