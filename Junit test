@@ -1,0 +1,83 @@
+@RunWith(MockitoJUnitRunner.class)
+public class FixformatConnectorControllerTest {
+
+@Mock
+private VisionPlusClient visionPlusClient;
+
+@Mock
+private VisionPlusConnectionConfig vPlusConnectionConfig;
+
+@InjectMocks
+private FixformatConnectorController controller;
+
+@Test
+public void testConnectSuccess() throws IOException {
+  String expectedRegion = "32x";
+  String expectedData = "testData";
+  String expectedUrl = "http://test-url.com";
+  String expectedOutput = "testOutput";
+  
+  when(vPlusConnectionConfig.getUrls()).thenReturn(Map.of(expectedRegion, expectedUrl));
+  when(visionPlusClient.connectVma(expectedData)).thenReturn(expectedOutput);
+  
+  FixformatConnectorRequest request = new FixformatConnectorRequest();
+  request.setRegion(expectedRegion);
+  request.setData(expectedData);
+  
+  String actualOutput = controller.connect(request);
+  
+  verify(vPlusConnectionConfig, times(1)).getUrls();
+  verify(visionPlusClient, times(1)).connectVma(expectedData);
+  
+  assertEquals(expectedOutput, actualOutput);
+}
+
+@Test
+public void testConnectBadRequest_EmptyRegion() throws IOException {
+  FixformatConnectorRequest request = new FixformatConnectorRequest();
+  request.setData("testData");
+  
+  try {
+    controller.connect(request);
+    fail();
+  } catch (SapiException ex) {
+    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
+    assertEquals(SapiStatus.BAD_REQUEST, ex.getCode());
+    assertEquals("region", ex.getParams().get(0));
+  }
+}
+
+@Test
+public void testConnectBadRequest_EmptyData() throws IOException {
+  FixformatConnectorRequest request = new FixformatConnectorRequest();
+  request.setRegion("32x");
+  
+  try {
+    controller.connect(request);
+    fail();
+  } catch (SapiException ex) {
+    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
+    assertEquals(SapiStatus.BAD_REQUEST, ex.getCode());
+    assertEquals("data", ex.getParams().get(0));
+  }
+}
+
+@Test
+public void testConnectBadRequest_EmptyUrl() throws IOException {
+  String expectedRegion = "32x";
+  String expectedData = "testData";
+  
+  when(vPlusConnectionConfig.getUrls()).thenReturn(Map.of(expectedRegion, ""));
+  
+  FixformatConnectorRequest request = new FixformatConnectorRequest();
+  request.setRegion(expectedRegion);
+  request.setData(expectedData);
+  
+  try {
+    controller.connect(request);
+    fail();
+  } catch (SapiException ex) {
+    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
+    assertEquals(SapiStatus.BAD_REQUEST, ex.getCode());
+    assertEquals("url", ex.getParams().get(0));
+  }
